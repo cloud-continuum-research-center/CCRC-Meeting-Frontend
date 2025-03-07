@@ -1,12 +1,13 @@
 /** @jsxImportSource @emotion/react */
 import styled from '@emotion/styled';
-import { useMemo } from 'react';
+import { useMemo, useEffect, useRef } from 'react';
 import { useTheme } from '@emotion/react';
 
 export type CustomMemberBlockProps = {
   imageUrl: string;
   nickname: string;
   authority: string;
+  stream?: MediaStream | null; // ✅ 추가: 참가자의 캠 스트림
 };
 
 const CustomBlockContainer = styled.div<{ backgroundColor: string }>`
@@ -46,6 +47,17 @@ const ProfileImage = styled.img`
   margin: 10px;
 `;
 
+// ✅ 추가: 캠 화면을 표시하는 video 태그 스타일
+const VideoStream = styled.video`
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+  border-radius: 100%;
+  object-fit: cover;
+  margin: 10px;
+`;
+
+
 // const Introduction = styled.div`
 //   font-size: ${(props) => props.theme.typography.fontSize.small};
 //   color: ${(props) => props.theme.colors.textBlue};
@@ -58,8 +70,19 @@ function CustomMemberBlock({
   imageUrl,
   nickname,
   authority,
+  stream, // ✅ 추가: 캠 스트림
 }: CustomMemberBlockProps) {
   const theme = useTheme();
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    if (videoRef.current && stream) {
+      videoRef.current.srcObject = stream;
+      videoRef.current.play().catch((error) => {
+        console.error("❌ Video play error:", error);
+      });
+    }
+  }, [stream]);
 
   const backgroundColor = useMemo(() => {
     const colors = [
@@ -78,7 +101,11 @@ function CustomMemberBlock({
         <Nickname>{nickname}</Nickname>
         <Authority>{authority}</Authority>
       </HeadContainer>
+      {stream ? ( // ✅ 캠 화면이 있으면 video 태그로 표시
+        <VideoStream ref={videoRef} autoPlay playsInline muted />
+      ) : ( // ✅ 캠 화면이 없으면 기존 프로필 이미지 표시
       <ProfileImage src={imageUrl} alt={nickname} />
+      )}
     </CustomBlockContainer>
   );
 }

@@ -5,6 +5,8 @@ import ButtonModule from './ButtonModule'; // MemberBlock을 import
 import { UserForTeam } from '../../../recoil/atoms/userAtom';
 // import { getParticipantLayout } from './LayoutUtils';
 // import { Participant } from './types'; // Participant 타입 정의가 필요하면 여기에 추가
+import { useRecoilValue } from 'recoil';
+import { userAtom } from '../../../recoil/atoms/userAtom';
 
 const PersonContainer = styled.div`
   position: relative;
@@ -97,13 +99,16 @@ const calculateGrid = (
   return { columns, rows: 3 };
 };
 
+// user를 props로 추가
 type PersonBoardProps = {
   participants?: UserForTeam[];
   localStream: MediaStream | null;
+  user: { id: number; nickname: string }; // 추가
 };
 
 function PersonBoard({ participants = [], localStream }: PersonBoardProps) {
   // function PersonBoard({ participants = dummy_participants }) {
+    const user = useRecoilValue(userAtom);
   const renderParticipants = () => {
     const { columns } = calculateGrid(participants.length);
 
@@ -115,6 +120,7 @@ function PersonBoard({ participants = [], localStream }: PersonBoardProps) {
             imageUrl={participant.profile ?? ''}
             nickname={participant.nickname}
             authority={participant.role ?? ''}
+            stream={participant.userId === user?.id ? localStream : null} // ✅ 본인의 캠 화면 적용
           />
         ))}
       </DynamicGridContainer>
