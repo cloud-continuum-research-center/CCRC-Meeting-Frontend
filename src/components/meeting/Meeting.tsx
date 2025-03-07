@@ -148,7 +148,7 @@ const Meeting = ({ meeting, teamName, teamId }: MeetingProps) => {
       console.log('Initializing WebRTC...');
       const rtcSocket = new WebSocket(WEBRTC_ENDPOINT);
       rtcSocketRef.current = rtcSocket;
-
+  
       rtcSocket.onopen = async () => {
         console.log('WebRTC WebSocket connected');
         rtcSocket.send(
@@ -158,92 +158,95 @@ const Meeting = ({ meeting, teamName, teamId }: MeetingProps) => {
             teamId,
           }),
         );
-
+  
         try {
-          const stream = await navigator.mediaDevices.getUserMedia({
+          // ✅ 오디오 + 비디오 스트림 가져오기
+          const fullStream = await navigator.mediaDevices.getUserMedia({
             audio: true,
-            //video: true, // 비디오 추가
+            video: {
+              width: { ideal: 1280 },
+              height: { ideal: 720 },
+            },
           });
-          console.log('Local stream tracks:', stream.getTracks());
-          setLocalStream(stream);
-
+  
+          console.log('Full local ocal stream tracks:', fullStream.getTracks());
+          setLocalStream(fullStream);
+  
+          // ✅ WebRTC 연결 생성
           const connection = new RTCPeerConnection({
             iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
           });
-
+  
+          // ✅ WebRTC에 오디오 + 비디오 추가 (송출)
+          fullStream.getTracks().forEach((track) => {
+            connection.addTrack(track, fullStream);
+          });
+  
           connection.onicecandidate = (event) => {
             if (event.candidate) {
               rtcSocket.send(
                 JSON.stringify({
                   type: 'ICE_CANDIDATE',
+                  userId: user.id,
                   candidate: event.candidate,
                 }),
               );
             }
           };
-
+  
           connection.ontrack = (event) => {
             console.log('Remote track received:', event.streams[0]);
-
             const remoteStream = event.streams[0];
             remoteStream.getTracks().forEach((track) => {
               console.log('Adding remote track to combinedStreamRef:', track);
               combinedStreamRef.current.addTrack(track);
             });
           };
-
-          console.log('Adding local tracks to combined stream...');
-          stream.getTracks().forEach((track) => {
-            console.log('Adding local track to combinedStreamRef:', track);
-            connection.addTrack(track, stream);
-            combinedStreamRef.current.addTrack(track);
-          });
-
-          connection.ontrack = (event) => {
-            const remoteStream = event.streams[0];
-            remoteStream.getTracks().forEach((track) => {
-              combinedStreamRef.current.addTrack(track);
-            });
-          };
-
+  
           setConnections((prev) => ({
             ...prev,
             [meeting?.meetingId || 'unknown']: connection,
           }));
-
+  
           const offer = await connection.createOffer();
           await connection.setLocalDescription(offer);
-
+  
           rtcSocket.send(
             JSON.stringify({
               type: 'OFFER',
+              userId: user.id,
+              meetingId: meeting.meetingId,
+              teamId,
               offer,
             }),
           );
-
-          console.log(
-            'Tracks in combined stream before recording:',
-            combinedStreamRef.current.getTracks(),
-          );
-
-          startRecording(combinedStreamRef.current);
+  
+          console.log('Tracks in combined stream before recording:', combinedStreamRef.current.getTracks());
+  
+          // ✅ 오디오만 녹음용 스트림 생성
+          const audioOnlyStream = new MediaStream();
+          fullStream.getAudioTracks().forEach((track) => {
+            audioOnlyStream.addTrack(track);
+          });
+  
+          console.log('Audio-only stream for recording:', audioOnlyStream.getTracks());
+  
+          startRecording(audioOnlyStream); // ✅ 오디오만 녹음
         } catch (error) {
           console.error('Error initializing WebRTC:', error);
         }
       };
-
+  
       rtcSocket.onmessage = (event) => {
         try {
           const message = JSON.parse(event.data);
           console.log('WebRTC Signal received:', message);
-
+  
           const connection = connections[meeting?.meetingId || 'unknown'];
           if (!connection) return;
-
+  
           if (message.type === 'ANSWER') {
-            connection.setRemoteDescription(
-              new RTCSessionDescription(message.answer),
-            );
+            connection.setRemoteDescription(new RTCSessionDescription(message.answer));
           } else if (message.type === 'ICE_CANDIDATE') {
             connection.addIceCandidate(new RTCIceCandidate(message.candidate));
           }
@@ -251,16 +254,17 @@ const Meeting = ({ meeting, teamName, teamId }: MeetingProps) => {
           handleNonJSONMessage(event.data);
         }
       };
-
+  
       rtcSocket.onclose = () => {
         console.log('WebRTC WebSocket disconnected');
       };
-
+  
       rtcSocket.onerror = (error) => {
         console.error('WebRTC WebSocket error:', error);
       };
     }
   };
+  
 
   const startRecording = (stream: MediaStream) => {
     if (stream.getTracks().length === 0) {
@@ -331,6 +335,8 @@ const Meeting = ({ meeting, teamName, teamId }: MeetingProps) => {
           type: 'audio/webm',
         });
         console.log('Final recording blob size:', finalBlob.size);
+        console.log('🔍 Blob type:', finalBlob.type);
+      console.log('🔗 Blob URL:', URL.createObjectURL(finalBlob));
         resolve(finalBlob);
 
         // ✅ 🔥 기존 MediaRecorder를 다시 시작하는 방식으로 변경

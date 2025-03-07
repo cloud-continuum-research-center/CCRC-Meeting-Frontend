@@ -127,15 +127,30 @@ function PersonBoard({ participants = [], localStream }: PersonBoardProps) {
         <div className="dot"></div>
         <div className="text">recording..</div>
         {localStream && (
-          <AudioUI
-            autoPlay
-            controls
-            muted
-            ref={(audio) => {
-              if (audio) audio.srcObject = localStream;
-            }}
-          />
-        )}
+          <>
+            <AudioUI
+              autoPlay
+              controls
+              muted
+              ref={(audio) => {
+                if (audio) audio.srcObject = localStream;
+              }}
+            />
+            <video
+              autoPlay
+              playsInline
+              muted
+              ref={(video) => {
+                if (video) video.srcObject = localStream;
+              }}
+              style={{
+                width: '200px', // ✅ 크기 조절 가능
+                borderRadius: '12px',
+                marginTop: '10px',
+              }}
+            />
+          </>
+          )}
       </RecordingIndicator>
       {participants.length === 0 ? (
         <div>No user in meeting</div>
