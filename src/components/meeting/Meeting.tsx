@@ -321,6 +321,10 @@ const Meeting = ({ meeting, teamName, teamId }: MeetingProps) => {
       }
 
       console.log('Stopping MediaRecorder...');
+
+      // ✅ 여기서 mediaRecorder가 잘 정의되어 있는지 확인
+      console.log("🔥 Current MediaRecorder State:", mediaRecorder.state);
+
       mediaRecorder.onstop = () => {
         console.log('MediaRecorder has stopped.');
         const finalBlob = new Blob(recordedChunksRef.current, {
@@ -328,6 +332,14 @@ const Meeting = ({ meeting, teamName, teamId }: MeetingProps) => {
         });
         console.log('Final recording blob size:', finalBlob.size);
         resolve(finalBlob);
+
+        // ✅ 🔥 기존 MediaRecorder를 다시 시작하는 방식으로 변경
+      if (localStream) {
+        mediaRecorder.start(); 
+        console.log('⏺ Resumed MediaRecorder after stopping.');
+      } else {
+        console.error("❌ No available stream to restart MediaRecorder.");
+      }
       };
 
       mediaRecorder.onerror = (error) => {

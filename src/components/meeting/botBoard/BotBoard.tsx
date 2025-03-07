@@ -122,7 +122,7 @@ function BotBoard({ meetingId, presignedUrl, stopRecording }: BotBoardProps) {
       });
 
       console.log('Uploading file size:', file.size);
-      await FileUpload(getBaseUrl(presignedUrl), file);
+      // await FileUpload(getBaseUrl(presignedUrl), file);
 
       let responseText;
       if (botType === 'Positive Feedback') {
@@ -132,11 +132,12 @@ function BotBoard({ meetingId, presignedUrl, stopRecording }: BotBoardProps) {
       } else if (botType === 'Summary') {
         responseText = await getSummaryBotApi(meetingId);
       } else if (botType === 'paper Loader') {
-        responseText = await getSummaryBotApi(meetingId);
+        responseText = await getLoaderBotApi(meetingId);
       }
       const newResponse = { botType, text: responseText.text };
       setResponses((prev) => [...prev, newResponse]);
       setSelectedBot(botType);
+
     } catch (error) {
       console.error('Error handling bot selection:', error);
     }

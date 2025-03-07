@@ -1,4 +1,6 @@
 import styled from '@emotion/styled';
+import { useEffect, useRef } from 'react';
+
 
 type BotResponsesProps = {
   responses: { botType: string; text: string }[];
@@ -13,7 +15,7 @@ const ResponsesContainer = styled.div`
 
   /* 스크롤 가능 설정 */
   // max-height: 100%;
-  max-height: 65%;
+  max-height: 460px;
   overflow-y: scroll;
   padding-right: 10px;
 
@@ -54,6 +56,7 @@ const BotIcon = styled.img`
 `;
 
 function BotResponses({ responses, bots }: BotResponsesProps) {
+
   return (
     <ResponsesContainer>
       {responses.map((response, index) => {
