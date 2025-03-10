@@ -452,7 +452,7 @@ const Meeting = ({ meeting, teamName, teamId }: MeetingProps) => {
       />
       <MeetingBody>
         <BlockWrapper>
-          <PersonBoard participants={participants} localStream={localStream} user={{ id: user?.id ?? 0, nickname: user?.nickname ?? 'Unknown' }} /> //  user 값 변환 
+          <PersonBoard participants={participants} localStream={localStream} user={{ id: user?.id ?? 0, nickname: user?.nickname ?? 'Unknown' }} />
           <BlockColumn>
             <EtcBoard
               meetingId={meeting?.meetingId ?? 0}

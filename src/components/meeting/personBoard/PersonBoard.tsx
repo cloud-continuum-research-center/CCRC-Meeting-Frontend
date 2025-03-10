@@ -132,9 +132,7 @@ function PersonBoard({ participants = [], localStream }: PersonBoardProps) {
       <RecordingIndicator>
         <div className="dot"></div>
         <div className="text">recording..</div>
-        {/* {localStream && (
-          <>
-            <AudioUI
+        <AudioUI
               autoPlay
               controls
               muted
@@ -142,6 +140,9 @@ function PersonBoard({ participants = [], localStream }: PersonBoardProps) {
                 if (audio) audio.srcObject = localStream;
               }}
             />
+        {/* {localStream && (
+          <>
+            
             <video
               autoPlay
               playsInline
