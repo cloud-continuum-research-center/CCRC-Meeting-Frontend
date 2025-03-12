@@ -76,13 +76,23 @@ function CustomMemberBlock({
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
-    if (videoRef.current && stream) {
-      videoRef.current.srcObject = stream;
-      videoRef.current.play().catch((error) => {
-        console.error("❌ Video play error:", error);
-      });
+    if (videoRef.current) {
+      if (stream) {
+        videoRef.current.srcObject = stream;
+        videoRef.current
+          .play()
+          .then(() => {
+            console.log(`Video playing for ${nickname}`);
+          })
+          .catch((error) => {
+            console.error(`❌ Error playing video for ${nickname}:`, error);
+          });
+      } else {
+        // 스트림이 없으면 srcObject를 null로 설정하여 비디오를 초기화합니다.
+        videoRef.current.srcObject = null;
+      }
     }
-  }, [stream]);
+  }, [stream, nickname]);
 
   const backgroundColor = useMemo(() => {
     const colors = [

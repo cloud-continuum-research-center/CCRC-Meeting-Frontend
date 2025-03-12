@@ -59,6 +59,11 @@ const Meeting = ({ meeting, teamName, teamId }: MeetingProps) => {
   // const [recordedChunks, setRecordedChunks] = useState<Blob[]>([]);
   const combinedStreamRef = useRef<MediaStream>(new MediaStream());
   const recordedChunksRef = useRef<Blob[]>([]);
+  // 각 원격 참가자별 연결을 저장(다자연결)
+  const [remoteConnections, setRemoteConnections] = useState<{ [userId: number]: RTCPeerConnection }>({});
+  const [remoteStreams, setRemoteStreams] = useState<{ [userId: number]: MediaStream }>({});
+
+
 
   const handleNonJSONMessage = (message: string) => {
     console.warn('Non-JSON WebSocket message received:', message);
@@ -168,8 +173,10 @@ const Meeting = ({ meeting, teamName, teamId }: MeetingProps) => {
               height: { ideal: 720 },
             },
           });
+          console.log("내 로컬 스트림:", fullStream);
+          console.log("내 로컬 비디오 트랙들:", fullStream.getVideoTracks());
   
-          console.log('Full local ocal stream tracks:', fullStream.getTracks());
+          console.log('Full local stream tracks:', fullStream.getTracks());
           setLocalStream(fullStream);
   
           // ✅ WebRTC 연결 생성
@@ -194,35 +201,23 @@ const Meeting = ({ meeting, teamName, teamId }: MeetingProps) => {
             }
           };
   
-          connection.ontrack = (event) => {
-            console.log('Remote track received:', event.streams[0]);
-            const remoteStream = event.streams[0];
-            remoteStream.getTracks().forEach((track) => {
-              console.log('Adding remote track to combinedStreamRef:', track);
-              combinedStreamRef.current.addTrack(track);
-            });
-          };
-  
-          setConnections((prev) => ({
-            ...prev,
-            [meeting?.meetingId || 'unknown']: connection,
-          }));
-  
+
+          // Offer 생성 및 전송
           const offer = await connection.createOffer();
           await connection.setLocalDescription(offer);
-  
+          console.log('Sending OFFER:', connection.localDescription);
           rtcSocket.send(
             JSON.stringify({
               type: 'OFFER',
               userId: user.id,
               meetingId: meeting.meetingId,
               teamId,
-              offer,
-            }),
+              offer, // offer 메시지 전송
+            })
           );
+         
   
-          console.log('Tracks in combined stream before recording:', combinedStreamRef.current.getTracks());
-  
+        
           // ✅ 오디오만 녹음용 스트림 생성
           const audioOnlyStream = new MediaStream();
           fullStream.getAudioTracks().forEach((track) => {
@@ -242,18 +237,98 @@ const Meeting = ({ meeting, teamName, teamId }: MeetingProps) => {
           const message = JSON.parse(event.data);
           console.log('WebRTC Signal received:', message);
   
-          const connection = connections[meeting?.meetingId || 'unknown'];
-          if (!connection) return;
-  
-          if (message.type === 'ANSWER') {
-            connection.setRemoteDescription(new RTCSessionDescription(message.answer));
-          } else if (message.type === 'ICE_CANDIDATE') {
-            connection.addIceCandidate(new RTCIceCandidate(message.candidate));
+          // 만약 OFFER 메시지이고, 보내는 userId가 현재 사용자와 다르다면
+    if (message.type === 'OFFER' && message.userId && message.userId !== user.id) {
+      // 이미 해당 userId에 대한 연결이 없으면 새 연결 생성
+      if (!remoteConnections[message.userId]) {
+        const connection = new RTCPeerConnection({
+          iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
+        });
+        connection.onicecandidate = (event) => {
+          if (event.candidate) {
+            rtcSocket.send(JSON.stringify({
+              type: 'ICE_CANDIDATE',
+              userId: user.id,
+              targetUserId: message.userId,
+              candidate: event.candidate,
+            }));
           }
-        } catch (error) {
-          handleNonJSONMessage(event.data);
+        };
+        connection.ontrack = (event) => {
+          // 1) ontrack 콜백이 불린 시점과 userid확인
+          console.log('ontrack event for user', message.userId, event);
+
+          // 2) 스트림이 제대로 있는지 확인
+          if (event.streams && event.streams[0]) {
+            const remoteStream = event.streams[0];
+
+            // 2-1) 스트림 내 트랙 종류/이름 확인
+            remoteStream.getTracks().forEach((trk) => {
+              console.log("remote track kind=", trk.kind, "label", trk.label);
+            });
+            console.log("ontrack에서 받은 스트림:", remoteStream);
+
+  // 여기서 비디오 트랙이 있는지 확인
+  console.log("원격 비디오 트랙들:", remoteStream.getVideoTracks());
+            console.log(`Received remote stream from user ${message.userId}:`, remoteStream);
+
+            // 3) setRemoteStreams를 통해 state에 반영하기 전후로 확인
+            setRemoteStreams((prev) => {
+              console.log('[ontrack] prev remoteStreams =', prev);
+              console.log('[ontrack] now storing userId:', message.userId);
+              
+              const updated = {
+                ...prev,
+                [message.userId]: remoteStream,
+              };
+              console.log('[ontrack] updated remoteStreams =', updated);
+        
+              return updated;
+          });
+        } else {
+          console.warn('ontrack event but no valid event.streams[0]', event.streams);
         }
       };
+        setRemoteConnections(prev => ({
+          ...prev,
+          [message.userId]: connection,
+        }));
+
+        // 처리: 받은 offer로 remote description 설정하고 answer 생성
+        connection.setRemoteDescription(new RTCSessionDescription(message.offer))
+          .then(() => connection.createAnswer())
+          .then(answer => connection.setLocalDescription(answer))
+          .then(() => {
+            rtcSocket.send(JSON.stringify({
+              type: 'ANSWER',
+              userId: user.id,
+              targetUserId: message.userId,
+              answer: connection.localDescription,
+            }));
+          })
+          .catch(error => {
+            console.error('Error handling OFFER from user', message.userId, error);
+          });
+      }
+    } else if (message.type === 'ANSWER' && message.targetUserId === user.id) {
+      // Answer 처리
+      const conn = remoteConnections[message.userId];
+      if (conn) {
+        conn.setRemoteDescription(new RTCSessionDescription(message.answer))
+          .catch(error => console.error('Error setting remote description:', error));
+      }
+    } else if (message.type === 'ICE_CANDIDATE' && message.targetUserId === user.id) {
+      // ICE Candidate 처리
+      const conn = remoteConnections[message.userId];
+      if (conn) {
+        conn.addIceCandidate(new RTCIceCandidate(message.candidate))
+          .catch(error => console.error('Error adding ICE candidate:', error));
+      }
+    }
+  } catch (error) {
+    handleNonJSONMessage(event.data);
+  }
+};
   
       rtcSocket.onclose = () => {
         console.log('WebRTC WebSocket disconnected');
@@ -439,6 +514,10 @@ const Meeting = ({ meeting, teamName, teamId }: MeetingProps) => {
   if (!meeting) {
     return <div></div>;
   }
+  
+  // remoteStreams 객체 안에 값이 있는지 확인
+  console.log("remoteStreams keys:", Object.keys(remoteStreams));
+
 
   return (
     <>
@@ -452,7 +531,8 @@ const Meeting = ({ meeting, teamName, teamId }: MeetingProps) => {
       />
       <MeetingBody>
         <BlockWrapper>
-          <PersonBoard participants={participants} localStream={localStream} user={{ id: user?.id ?? 0, nickname: user?.nickname ?? 'Unknown' }} />
+          <PersonBoard participants={participants} localStream={localStream} user={{ id: user?.id ?? 0, nickname: user?.nickname ?? 'Unknown' }}   remoteStreams={remoteStreams}  // 원격 스트림이 필요하다면 추가
+ />
           <BlockColumn>
             <EtcBoard
               meetingId={meeting?.meetingId ?? 0}
@@ -466,6 +546,24 @@ const Meeting = ({ meeting, teamName, teamId }: MeetingProps) => {
             />
           </BlockColumn>
         </BlockWrapper>
+        {/* 1) 디버깅용 Remote Streams 표시 */}
+      <div style={{ marginTop: "20px", border: "1px solid red" }}>
+        <h3>Debug: Remote Streams</h3>
+        {Object.entries(remoteStreams).map(([userid, stream]) => (
+          <video
+            key={userid}
+            autoPlay
+            playsInline
+            muted
+            style={{ width: "200px", border: "2px solid green", marginRight: "8px" }}
+            ref={(videoEl) => {
+              if (videoEl) {
+                videoEl.srcObject = stream;
+              }
+            }}
+          />
+        ))}
+      </div>
       </MeetingBody>
     </>
   );

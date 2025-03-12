@@ -104,25 +104,44 @@ type PersonBoardProps = {
   participants?: UserForTeam[];
   localStream: MediaStream | null;
   user: { id: number; nickname: string }; // 추가
+  // remoteStreams: { [userId: number]: MediaStream }; // 추가
+  remoteStreams: Record<number, MediaStream>; // 추가
+
 };
 
-function PersonBoard({ participants = [], localStream }: PersonBoardProps) {
+function PersonBoard({ participants = [], localStream, user, remoteStreams }: PersonBoardProps) {
   // function PersonBoard({ participants = dummy_participants }) {
-    const user = useRecoilValue(userAtom);
+    const userFromAtom = useRecoilValue(userAtom);
   const renderParticipants = () => {
     const { columns } = calculateGrid(participants.length);
 
     return (
       <DynamicGridContainer columns={columns}>
-        {participants.map((participant) => (
-          <CustomMemberBlock
-            key={participant.userId}
-            imageUrl={participant.profile ?? ''}
-            nickname={participant.nickname}
-            authority={participant.role ?? ''}
-            stream={participant.userId === user?.id ? localStream : null} // ✅ 본인의 캠 화면 적용
-          />
-        ))}
+        {participants.map((participant) => {
+          // 본인이면 localStream, 아니면 remoteStreams에서 찾는다
+          const stream =
+            participant.userId != null 
+              ? participant.userId === userFromAtom?.id
+                ? localStream
+                : remoteStreams[participant.userId] ?? null
+              : null;
+
+          // 디버깅용 로그
+          console.log(
+            `Participant ${participant.userId} => stream:`,
+            stream,
+          );
+
+          return (
+            <CustomMemberBlock
+              key={participant.userId}
+              imageUrl={participant.profile ?? ''}
+              nickname={participant.nickname}
+              authority={participant.role ?? ''}
+              stream={stream}
+            />
+          );
+        })}
       </DynamicGridContainer>
     );
   };
