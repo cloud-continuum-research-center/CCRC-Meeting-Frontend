@@ -9,9 +9,10 @@ import {
   getPositiveBotApi,
   getSummaryBotApi,
   getLoaderBotApi,
-  uploadFileToMeetingPresignedUrl,
+  // uploadFileToMeetingPresignedUrl, // 필요없어짐
+  uploadFileToBotApi
 } from '../../../api/meetingApi';
-import { getBaseUrl } from '../../../utils/meetingUtils';
+// import { getBaseUrl } from '../../../utils/meetingUtils'; // 필요없어짐
 
 const BoardContainer = styled.div`
   display: flex;
@@ -93,18 +94,19 @@ function BotBoard({ meetingId, presignedUrl, stopRecording }: BotBoardProps) {
     }
   });
 
-  const FileUpload = async (presignedUrl: string, file: File) => {
-    try {
-      console.log('Uploading file to S3...');
-      await uploadFileToMeetingPresignedUrl(presignedUrl, file);
-    } catch (error) {
-      console.error('Failed to upload file:', error);
-    }
-  };
+  // s3 업로드
+  // const FileUpload = async (presignedUrl: string, file: File) => {
+  //   try {
+  //     console.log('Uploading file to S3...');
+  //     await uploadFileToMeetingPresignedUrl(presignedUrl, file);
+  //   } catch (error) {
+  //     console.error('Failed to upload file:', error);
+  //   }
+  // };
 
   const handleSelectBot = async (botType: string) => {
-    if (!presignedUrl) {
-      console.error('Presigned URL is not available');
+    if (!meetingId) {
+      console.error('Meeting ID is not available');
       return;
     }
 
@@ -149,6 +151,8 @@ function BotBoard({ meetingId, presignedUrl, stopRecording }: BotBoardProps) {
   // setResponses((prev) => [...prev, newResponse]);
   // setSelectedBot(botType);
   // };
+
+
 
   const botColorsAndImages = bots.reduce(
     (acc, bot) => {
