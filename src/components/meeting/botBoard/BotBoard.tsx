@@ -12,7 +12,7 @@ import {
   // uploadFileToMeetingPresignedUrl, // 필요없어짐
   uploadFileToBotApi
 } from '../../../api/meetingApi';
-// import { getBaseUrl } from '../../../utils/meetingUtils'; // 필요없어짐
+import { getBaseUrl } from '../../../utils/meetingUtils'; // 필요없어짐
 
 const BoardContainer = styled.div`
   display: flex;
@@ -104,6 +104,16 @@ function BotBoard({ meetingId, presignedUrl, stopRecording }: BotBoardProps) {
   //   }
   // };
 
+    // 백엔드에 업로드
+  const FileUpload = async (file: File, meetingId: number) => {
+    try {
+      console.log('Uploading file to backend...');
+      await uploadFileToBotApi(file, meetingId);
+    } catch (error) {
+      console.error('Failed to upload file:', error);
+    }
+  };
+
   const handleSelectBot = async (botType: string) => {
     if (!meetingId) {
       console.error('Meeting ID is not available');
@@ -124,6 +134,7 @@ function BotBoard({ meetingId, presignedUrl, stopRecording }: BotBoardProps) {
       });
 
       console.log('Uploading file size:', file.size);
+      await FileUpload(file, meetingId);
       // await FileUpload(getBaseUrl(presignedUrl), file);
 
       let responseText;
@@ -135,6 +146,7 @@ function BotBoard({ meetingId, presignedUrl, stopRecording }: BotBoardProps) {
         responseText = await getSummaryBotApi(meetingId);
       } else if (botType === 'paper Loader') {
         responseText = await getLoaderBotApi(meetingId);
+        console.log('Loader Bot API response:', responseText);
       }
       const newResponse = { botType, text: responseText.text };
       setResponses((prev) => [...prev, newResponse]);

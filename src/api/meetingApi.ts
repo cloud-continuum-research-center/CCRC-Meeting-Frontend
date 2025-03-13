@@ -82,7 +82,7 @@ export const uploadFileToBotApi = async (file: File, meetingId: number): Promise
   formData.append("meeting_id", meetingId.toString());
 
   const response = await axiosInstance.post(
-    "http://163.180.117.216:8000/api/v1/bot/positive", // 백엔드의 transcribe_positive 엔드포인트 URL
+    "https://163.180.117.216:8000", // 백엔드의 transcribe_positive 엔드포인트 URL
     formData,
     {
       headers: {
@@ -132,6 +132,8 @@ export const getLoaderBotApi = async (meetingId: number) => {
   const response = await axiosInstance.get('/api/v1/bot/loader', {
     params: { meetingId },
   });
+  console.log('Loader raw response', response); // 전체 구조
+console.log('Loader data:', response.data);  // data 구조
   if (response.data?.success && response.status === 200) {
     return response.data.data;
   }
