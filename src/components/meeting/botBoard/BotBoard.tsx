@@ -152,6 +152,9 @@ function BotBoard({ meetingId, presignedUrl, stopRecording }: BotBoardProps) {
       setResponses((prev) => [...prev, newResponse]);
       setSelectedBot(botType);
 
+      
+
+
     } catch (error) {
       console.error('Error handling bot selection:', error);
     }

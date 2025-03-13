@@ -5,6 +5,7 @@ import QuitBtn from './QuitBtn';
 import BoardContainer from '../../common/board/BoardContainer';
 import BoardTitle from '../../common/board/BoardTitle';
 import { useNavigate } from 'react-router';
+import { endMeetingApi } from '../../../api/meetingApi';
 
 const FixedHeightContainer = styled(BoardContainer)`
   height: 140px; /* 고정된 높이 */
@@ -12,6 +13,7 @@ const FixedHeightContainer = styled(BoardContainer)`
 `;
 
 function EtcBoard({
+  meetingId,
   leaveMeeting,
 }: {
   meetingId: number;
