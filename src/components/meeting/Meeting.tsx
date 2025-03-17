@@ -451,6 +451,7 @@ const Meeting = ({ meeting, teamName, teamId }: MeetingProps) => {
             <EtcBoard
               meetingId={meeting?.meetingId ?? 0}
               leaveMeeting={leaveMeeting}
+              stopRecording={stopRecording}
             />
             <BotBoard
               meetingId={meeting?.meetingId}

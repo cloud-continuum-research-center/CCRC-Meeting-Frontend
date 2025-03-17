@@ -10,7 +10,7 @@ import {
   getSummaryBotApi,
   getLoaderBotApi,
   // uploadFileToMeetingPresignedUrl, // 필요없어짐
-  uploadFileToBotApi
+  // uploadFileToBotApi
 } from '../../../api/meetingApi';
 import { getBaseUrl } from '../../../utils/meetingUtils'; // 필요없어짐
 
@@ -105,14 +105,14 @@ function BotBoard({ meetingId, presignedUrl, stopRecording }: BotBoardProps) {
   // };
 
     // 백엔드에 업로드
-  const FileUpload = async (file: File, meetingId: number) => {
-    try {
-      console.log('Uploading file to backend...');
-      await uploadFileToBotApi(file, meetingId);
-    } catch (error) {
-      console.error('Failed to upload file:', error);
-    }
-  };
+  // const FileUpload = async (file: File, meetingId: number) => {
+  //   try {
+  //     console.log('Uploading file to backend...');
+  //     await uploadFileToBotApi(file, meetingId);
+  //   } catch (error) {
+  //     console.error('Failed to upload file:', error);
+  //   }
+  // };
 
   const handleSelectBot = async (botType: string) => {
     if (!meetingId) {
@@ -134,21 +134,21 @@ function BotBoard({ meetingId, presignedUrl, stopRecording }: BotBoardProps) {
       });
 
       console.log('Uploading file size:', file.size);
-      await FileUpload(file, meetingId);
+      // await FileUpload(file, meetingId);
       // await FileUpload(getBaseUrl(presignedUrl), file);
 
       let responseText;
       if (botType === 'Positive Feedback') {
-        responseText = await getPositiveBotApi(meetingId);
+        responseText = await getPositiveBotApi(file, meetingId);
       } else if (botType === 'Attendance Checker') {
-        responseText = await getNegativeBotApi(meetingId);
+        responseText = await getNegativeBotApi(file, meetingId);
       } else if (botType === 'Summary') {
-        responseText = await getSummaryBotApi(meetingId);
-      } else if (botType === 'paper Loader') {
-        responseText = await getLoaderBotApi(meetingId);
+        responseText = await getSummaryBotApi(file, meetingId);
+      } else if (botType === 'Paper Loader') {
+        responseText = await getLoaderBotApi(file, meetingId);
         console.log('Loader Bot API response:', responseText);
       }
-      const newResponse = { botType, text: responseText.text };
+      const newResponse = { botType, text: responseText.llm_response ?? "(llm_response가 없습니다)", };
       setResponses((prev) => [...prev, newResponse]);
       setSelectedBot(botType);
 

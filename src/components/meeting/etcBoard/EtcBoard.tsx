@@ -15,9 +15,11 @@ const FixedHeightContainer = styled(BoardContainer)`
 function EtcBoard({
   meetingId,
   leaveMeeting,
+  stopRecording,
 }: {
   meetingId: number;
   leaveMeeting: () => void;
+  stopRecording: () => Promise<Blob>;
 }) {
   const meetingDuration = 5400; // 예: 1시간 30분 (초 단위)
   const navigate = useNavigate();
@@ -30,9 +32,28 @@ function EtcBoard({
 
   const handleQuitMeeting = async () => {
     try {
+
+      const recording = await stopRecording();
+      console.log('Recording received from stopRecording:', recording);
+
+      if (recording.size === 0) {
+        console.error('The recording file is empty. Aborting upload.');
+        return;
+      }
+
+      const file = new File([recording], 'meeting_recording.webm', {
+        type: 'audio/webm',
+      });
+
+      console.log('Uploading file size:', file.size);
+      // await FileUpload(file, meetingId);
+      // await FileUpload(getBaseUrl(presignedUrl), file);
+      
+      const meetingData = await endMeetingApi(file, meetingId);
+      console.log('Meeting ended successfully:', meetingData);
+
       leaveMeeting();
-      // const meetingData = await endMeetingApi(meetingId);
-      // console.log('Meeting ended successfully:', meetingData);
+      
       navigate(-1);
     } catch (error) {
       console.error('Failed to end the meeting:', error);
