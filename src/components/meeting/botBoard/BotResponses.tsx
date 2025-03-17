@@ -5,6 +5,7 @@ import { useEffect, useRef } from 'react';
 type BotResponsesProps = {
   responses: { botType: string; text: string }[];
   bots: { [botType: string]: { color: string; imageUrl: string } }; // 봇 정보 (색상, 이미지)
+  // onOpenModal: (noteId: number) => void;
 };
 
 const ResponsesContainer = styled.div`
@@ -55,6 +56,18 @@ const BotIcon = styled.img`
   background-position: center;
 `;
 
+// const openLogModal = async (noteId: number) => {
+//   try {
+//     const logDetails = await fetchLogDetailsApi(noteId);
+//     setSelectedLog(logDetails);
+//     setModalOpen(true);
+//   } catch (err) {
+//     console.error('Failed to fetch log details', err);
+//     alert('Failed to fetch log details');
+//   }
+// };
+
+
 function BotResponses({ responses, bots }: BotResponsesProps) {
 
   return (
@@ -64,7 +77,27 @@ function BotResponses({ responses, bots }: BotResponsesProps) {
         return (
           <ResponseBubble key={index} color={bot.color}>
             <BotIcon src={bot.imageUrl} alt={response.botType} />
-            {response.text}
+            <div style={{ flex: 1 }}>
+              <div>{response.text}</div>
+
+              {/* LoaderBot 전용 버튼 */}
+              {response.botType === 'Paper Loader' && (response as any).noteId && (
+                <button
+                  style={{
+                    marginTop: '8px',
+                    fontSize: '0.9rem',
+                    color: '#007bff',
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    textDecoration: 'underline',
+                  }}
+                  // onClick={() => openLogModal((response as any).noteId)} //대기
+                >
+                  📄 회의록 보기
+                </button>
+              )}
+            </div>
           </ResponseBubble>
         );
       })}

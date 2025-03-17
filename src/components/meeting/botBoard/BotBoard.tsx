@@ -137,20 +137,50 @@ function BotBoard({ meetingId, presignedUrl, stopRecording }: BotBoardProps) {
       // await FileUpload(file, meetingId);
       // await FileUpload(getBaseUrl(presignedUrl), file);
 
+      // 공통 봇 핸들러
+      const handleGenericBotResponse = (botType: string, responseText: any) => {
+        const newResponse = {
+          botType,
+          text: responseText.llm_response ?? '(llm_response가 없습니다)',
+        };
+        setResponses((prev) => [...prev, newResponse]);
+        setSelectedBot(botType);
+      };
+
+      // 로더 봇 핸들러
+      const handleLoaderBotResponse = (responseText: any) => {
+        const newResponse = {
+          botType: 'Paper Loader',
+          text: responseText.response ?? '(응답 없음)',
+          noteId: responseText.note_ids,
+        };
+        setResponses((prev) => [...prev, newResponse]);
+        setSelectedBot('Paper Loader');
+      };
+      
       let responseText;
       if (botType === 'Positive Feedback') {
         responseText = await getPositiveBotApi(file, meetingId);
+        handleGenericBotResponse(botType, responseText);
+
       } else if (botType === 'Attendance Checker') {
         responseText = await getNegativeBotApi(file, meetingId);
+        handleGenericBotResponse(botType, responseText);
+
       } else if (botType === 'Summary') {
         responseText = await getSummaryBotApi(file, meetingId);
+        handleGenericBotResponse(botType, responseText);
+
       } else if (botType === 'Paper Loader') {
         responseText = await getLoaderBotApi(file, meetingId);
+        handleLoaderBotResponse(responseText);
         console.log('Loader Bot API response:', responseText);
       }
-      const newResponse = { botType, text: responseText.llm_response ?? "(llm_response가 없습니다)", };
-      setResponses((prev) => [...prev, newResponse]);
-      setSelectedBot(botType);
+      // const newResponse = { botType, text: responseText.llm_response ?? "(llm_response가 없습니다)", };
+      // setResponses((prev) => [...prev, newResponse]);
+      // setSelectedBot(botType);
+
+
 
       
 

@@ -201,7 +201,10 @@ export const getLoaderBotApi = async (file: File, meetingId: number) => {
       },
     });
 
-    if (responseLoader.data?.transcription) {
+    const { note_ids, response } = responseLoader.data;
+
+
+    if (note_ids && response) {
       console.log("✅ Loader API request successful", responseLoader.data);
     } else {
       console.error("Loader API did not succeed", responseLoader.data);
