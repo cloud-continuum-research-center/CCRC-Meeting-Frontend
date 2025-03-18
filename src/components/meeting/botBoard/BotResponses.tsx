@@ -82,20 +82,35 @@ function BotResponses({ responses, bots }: BotResponsesProps) {
 
               {/* LoaderBot 전용 버튼 */}
               {response.botType === 'Paper Loader' && (response as any).noteId && (
+                <>
+                <div style={{ marginTop: '8px', fontSize: '0.85rem', color: '#555' }}>
+                  회의록을 보려면 클릭하세요!
+                </div>
                 <button
                   style={{
                     marginTop: '8px',
+                    padding: '6px 12px',
                     fontSize: '0.9rem',
-                    color: '#007bff',
-                    background: 'none',
-                    border: 'none',
+                    color: 'white',
+                    backgroundColor: '#5A9CF5', // 부드러운 연한 파랑
+                    border: '1px solid #5A9CF5',
+                    borderRadius: '6px',
                     cursor: 'pointer',
-                    textDecoration: 'underline',
+                    transition: 'all 0.2s',
                   }}
-                  // onClick={() => openLogModal((response as any).noteId)} //대기
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = '#0056b3';
+                    e.currentTarget.style.borderColor = '#0056b3';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = '#007bff';
+                    e.currentTarget.style.borderColor = '#007bff';
+                  }}
+                                    // onClick={() => openLogModal((response as any).noteId)} // 대기
                 >
                   📄 회의록 보기
                 </button>
+              </>
               )}
             </div>
           </ResponseBubble>
