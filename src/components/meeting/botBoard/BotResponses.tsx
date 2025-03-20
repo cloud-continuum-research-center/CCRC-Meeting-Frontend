@@ -1,11 +1,21 @@
+/** @jsxImportSource @emotion/react */
 import styled from '@emotion/styled';
-import { useEffect, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
+import { Log } from '../../../models/Log';
+import { useFetchLogs } from '../../../hooks/useFetchLogs';
+import { fetchLogDetailsApi } from '../../../api/logApi';
 
+
+type BotResponse = {
+  botType: string;
+  text: string;
+  noteId?: number; // 있을 수도 있고 없을 수도
+};
 
 type BotResponsesProps = {
-  responses: { botType: string; text: string }[];
+  responses: BotResponse[];
   bots: { [botType: string]: { color: string; imageUrl: string } }; // 봇 정보 (색상, 이미지)
-  // onOpenModal: (noteId: number) => void;
+  openLogModal: (noteId: number) => void;
 };
 
 const ResponsesContainer = styled.div`
@@ -68,7 +78,7 @@ const BotIcon = styled.img`
 // };
 
 
-function BotResponses({ responses, bots }: BotResponsesProps) {
+function BotResponses({ responses, bots, openLogModal }: BotResponsesProps) {
 
   return (
     <ResponsesContainer>
@@ -106,7 +116,11 @@ function BotResponses({ responses, bots }: BotResponsesProps) {
                     e.currentTarget.style.backgroundColor = '#007bff';
                     e.currentTarget.style.borderColor = '#007bff';
                   }}
-                                    // onClick={() => openLogModal((response as any).noteId)} // 대기
+                  onClick={() => {
+                    if (response.noteId !== null) {
+                      openLogModal(response.noteId!);
+                    }
+                  }}
                 >
                   📄 회의록 보기
                 </button>

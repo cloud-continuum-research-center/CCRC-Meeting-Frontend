@@ -13,6 +13,17 @@ import {
   // uploadFileToBotApi
 } from '../../../api/meetingApi';
 import { getBaseUrl } from '../../../utils/meetingUtils'; // 필요없어짐
+import { Log } from '../../../models/Log';
+import { useFetchLogs } from '../../../hooks/useFetchLogs';
+import { fetchLogDetailByLoadersApi } from '../../../api/logApi';
+import LogModal from '../../common/logBoard/LogModal';
+
+
+type BotResponse = {
+  botType: string;
+  text: string;
+  noteId?: number; // 있을 수도 있고 없을 수도
+};
 
 const BoardContainer = styled.div`
   display: flex;
@@ -76,23 +87,42 @@ const bots = [
 
 type BotBoardProps = {
   meetingId: number;
-  presignedUrl: string | undefined | null;
+  // presignedUrl: string | undefined | null;
   getRecordingFile: (chunks: Blob[]) => Blob;
   stopRecording: () => Promise<Blob>;
 };
 
-function BotBoard({ meetingId, presignedUrl, stopRecording }: BotBoardProps) {
+function BotBoard({ meetingId, stopRecording }: BotBoardProps) {
   const [selectedBot, setSelectedBot] = useState<string | null>(null);
   const [responses, setResponses] = useState<
-    { botType: string; text: string }[]
+    { botType: string; text: string; noteId?: number  }[]
   >([]);
+  // 모달 열림/닫힘 상태와 선택된 회의록 데이터를 위한 상태
+  const [isModalOpen, setModalOpen] = useState(false);
+  const [selectedLog, setSelectedLog] = useState<any>(null);
 
-  useEffect(() => {
-    if (!presignedUrl) {
-      console.warn('Missing presignedUrl.');
-      return;
-    }
-  });
+    // 실제 회의록 세부 정보를 가져오는 API 호출 (예시)
+    const openLogModal = async (noteId: number | null) => {
+      if (noteId === null) {
+        alert('noteId가 없습니다.');
+        return;
+      }
+      try {
+        const logDetails = await fetchLogDetailByLoadersApi(noteId);
+        setSelectedLog(logDetails);
+        setModalOpen(true);
+      } catch (err) {
+        console.error('Failed to fetch log details', err);
+        alert('Failed to fetch log details');
+      }
+    };
+
+  // useEffect(() => {
+  //   if (!presignedUrl) {
+  //     console.warn('Missing presignedUrl.');
+  //     return;
+  //   }
+  // });
 
   // s3 업로드
   // const FileUpload = async (presignedUrl: string, file: File) => {
@@ -224,8 +254,11 @@ function BotBoard({ meetingId, presignedUrl, stopRecording }: BotBoardProps) {
           ))}
         </BotContainer>
         <Divider color={theme.colors.lineGray} />
-        <BotResponses responses={responses} bots={botColorsAndImages} />
+        <BotResponses responses={responses} bots={botColorsAndImages} openLogModal={openLogModal} />
       </BoardTitleContainer>
+      {isModalOpen && selectedLog && (
+        <LogModal log={selectedLog} onClose={() => setModalOpen(false)} />
+      )}
     </BoardContainer>
   );
 }

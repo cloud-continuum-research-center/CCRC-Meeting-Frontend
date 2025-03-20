@@ -455,7 +455,7 @@ const Meeting = ({ meeting, teamName, teamId }: MeetingProps) => {
             />
             <BotBoard
               meetingId={meeting?.meetingId}
-              presignedUrl={meeting.presignedUrl}
+              // presignedUrl={meeting.presignedUrl}
               getRecordingFile={getRecordingFile}
               stopRecording={stopRecording}
             />
