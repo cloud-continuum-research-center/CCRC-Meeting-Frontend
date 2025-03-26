@@ -57,13 +57,13 @@ const bots = [
     color: '#B585F6', // 청록색
   },
   {
-    name: 'Positive',
+    name: 'SAJU',
     imageUrl: '/assets/images/attendacne_checker_colored.png',
     botType: 'Positive Feedback',
     color: '#90D4AB', // 보라색
   },
   {
-    name: 'Negative',
+    name: 'MBTI',
     imageUrl: '/assets/images/summary_colored.png',
     botType: 'Attendance Checker',
     color: '#F096A7', // 핑크색
@@ -189,15 +189,15 @@ function BotBoard({ meetingId, stopRecording }: BotBoardProps) {
       };
       
       let responseText;
-      if (botType === 'Positive Feedback') {
+      if (botType === 'Positive Feedback') { // saju
         responseText = await getPositiveBotApi(file, meetingId);
         handleGenericBotResponse(botType, responseText);
 
-      } else if (botType === 'Attendance Checker') {
+      } else if (botType === 'Attendance Checker') { // mbti
         responseText = await getNegativeBotApi(file, meetingId);
         handleGenericBotResponse(botType, responseText);
 
-      } else if (botType === 'Summary') {
+      } else if (botType === 'Summary') { 
         responseText = await getSummaryBotApi(file, meetingId);
         handleGenericBotResponse(botType, responseText);
 

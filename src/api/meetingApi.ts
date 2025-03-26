@@ -124,10 +124,11 @@ export const getSummaryBotApi = async (file: File, meetingId: number) => {
   }
 };
 
+// saju
 export const getPositiveBotApi = async (file: File, meetingId: number) => {
   // AI 서버 URL을 환경변수에서 불러옵니다.
   const aiUrl = import.meta.env.VITE_AI_URL; // 예: http://163.180.117.216:8000
-  const positiveUrl = `${aiUrl}/api/positive`;
+  const positiveUrl = `${aiUrl}/api/bot/saju`;
 
   const formData = new FormData();
   formData.append("file", file);
@@ -153,11 +154,11 @@ export const getPositiveBotApi = async (file: File, meetingId: number) => {
   }
 };
 
-
+// mbti
 export const getNegativeBotApi = async (file: File, meetingId: number) => {
   // AI 서버 URL을 환경변수에서 불러옵니다.
   const aiUrl = import.meta.env.VITE_AI_URL; // 예: http://163.180.117.216:8000
-  const negativeUrl = `${aiUrl}/api/negative`;
+  const negativeUrl = `${aiUrl}/api/bot/mbti`;
 
   const formData = new FormData();
   formData.append("file", file);
