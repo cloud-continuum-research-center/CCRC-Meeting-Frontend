@@ -1,8 +1,21 @@
+/** @jsxImportSource @emotion/react */
 import styled from '@emotion/styled';
+import React, { useEffect, useState } from 'react';
+import { Log } from '../../../models/Log';
+import { useFetchLogs } from '../../../hooks/useFetchLogs';
+import { fetchLogDetailsApi } from '../../../api/logApi';
+
+
+type BotResponse = {
+  botType: string;
+  text: string;
+  noteId?: number; // 있을 수도 있고 없을 수도
+};
 
 type BotResponsesProps = {
-  responses: { botType: string; text: string }[];
+  responses: BotResponse[];
   bots: { [botType: string]: { color: string; imageUrl: string } }; // 봇 정보 (색상, 이미지)
+  openLogModal: (noteId: number) => void;
 };
 
 const ResponsesContainer = styled.div`
@@ -13,7 +26,7 @@ const ResponsesContainer = styled.div`
 
   /* 스크롤 가능 설정 */
   // max-height: 100%;
-  max-height: 65%;
+  max-height: 460px;
   overflow-y: scroll;
   padding-right: 10px;
 
@@ -53,7 +66,20 @@ const BotIcon = styled.img`
   background-position: center;
 `;
 
-function BotResponses({ responses, bots }: BotResponsesProps) {
+// const openLogModal = async (noteId: number) => {
+//   try {
+//     const logDetails = await fetchLogDetailsApi(noteId);
+//     setSelectedLog(logDetails);
+//     setModalOpen(true);
+//   } catch (err) {
+//     console.error('Failed to fetch log details', err);
+//     alert('Failed to fetch log details');
+//   }
+// };
+
+
+function BotResponses({ responses, bots, openLogModal }: BotResponsesProps) {
+
   return (
     <ResponsesContainer>
       {responses.map((response, index) => {
@@ -61,7 +87,46 @@ function BotResponses({ responses, bots }: BotResponsesProps) {
         return (
           <ResponseBubble key={index} color={bot.color}>
             <BotIcon src={bot.imageUrl} alt={response.botType} />
-            {response.text}
+            <div style={{ flex: 1 }}>
+              <div>{response.text}</div>
+
+              {/* LoaderBot 전용 버튼 */}
+              {response.botType === 'Paper Loader' && (response as any).noteId && (
+                <>
+                <div style={{ marginTop: '8px', fontSize: '0.85rem', color: '#555' }}>
+                  회의록을 보려면 클릭하세요!
+                </div>
+                <button
+                  style={{
+                    marginTop: '8px',
+                    padding: '6px 12px',
+                    fontSize: '0.9rem',
+                    color: 'white',
+                    backgroundColor: '#5A9CF5', // 부드러운 연한 파랑
+                    border: '1px solid #5A9CF5',
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = '#0056b3';
+                    e.currentTarget.style.borderColor = '#0056b3';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = '#007bff';
+                    e.currentTarget.style.borderColor = '#007bff';
+                  }}
+                  onClick={() => {
+                    if (response.noteId !== null) {
+                      openLogModal(response.noteId!);
+                    }
+                  }}
+                >
+                  📄 회의록 보기
+                </button>
+              </>
+              )}
+            </div>
           </ResponseBubble>
         );
       })}

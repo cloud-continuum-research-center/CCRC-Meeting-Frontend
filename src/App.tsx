@@ -38,9 +38,9 @@ function AppInitializer() {
       console.log('Initializing App...');
 
       if (!user) {
-        const storedUser = localStorage.getItem('user');
+        const storedUser = sessionStorage.getItem('user');
         if (storedUser) {
-          console.log('Loading user from localStorage...');
+          console.log('Loading user from sessionStorage...');
           setUser(JSON.parse(storedUser));
           return;
         }
@@ -76,7 +76,7 @@ function AppInitializer() {
 
   useEffect(() => {
     if (user) {
-      localStorage.setItem('user', JSON.stringify(user));
+      sessionStorage.setItem('user', JSON.stringify(user));
     }
   }, [user]);
 

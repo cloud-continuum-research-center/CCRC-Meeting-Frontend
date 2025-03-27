@@ -96,6 +96,20 @@ function LogBoard({ teamId, userId, itemsPerPage = 7, title }: LogBoardProps) {
     }
   };
 
+  // 로더봇 전용 오픈모달 함수
+  // const openLogModal = async (noteId: number) => {
+  //   try {
+  //     const logDetails = await fetchLogDetailsApi(noteId);
+  //     setSelectedLog(logDetails);
+  //     setModalOpen(true);
+  //   } catch (err) {
+  //     console.error('Failed to fetch log details', err);
+  //     alert('Failed to fetch log details');
+  //   }
+  // };
+  
+
+  
   const handleLogClick = async (log: Log) => {
     if (log.meetingId === null) {
       alert('This log has no meetingId.');

@@ -9,9 +9,21 @@ import {
   getPositiveBotApi,
   getSummaryBotApi,
   getLoaderBotApi,
-  uploadFileToMeetingPresignedUrl,
+  // uploadFileToMeetingPresignedUrl, // 필요없어짐
+  // uploadFileToBotApi
 } from '../../../api/meetingApi';
-import { getBaseUrl } from '../../../utils/meetingUtils';
+import { getBaseUrl } from '../../../utils/meetingUtils'; // 필요없어짐
+import { Log } from '../../../models/Log';
+import { useFetchLogs } from '../../../hooks/useFetchLogs';
+import { fetchLogDetailByLoadersApi } from '../../../api/logApi';
+import LogModal from '../../common/logBoard/LogModal';
+
+
+type BotResponse = {
+  botType: string;
+  text: string;
+  noteId?: number; // 있을 수도 있고 없을 수도
+};
 
 const BoardContainer = styled.div`
   display: flex;
@@ -45,13 +57,13 @@ const bots = [
     color: '#B585F6', // 청록색
   },
   {
-    name: 'Positive',
+    name: 'SAJU',
     imageUrl: '/assets/images/attendacne_checker_colored.png',
     botType: 'Positive Feedback',
     color: '#90D4AB', // 보라색
   },
   {
-    name: 'Negative',
+    name: 'MBTI',
     imageUrl: '/assets/images/summary_colored.png',
     botType: 'Attendance Checker',
     color: '#F096A7', // 핑크색
@@ -75,36 +87,66 @@ const bots = [
 
 type BotBoardProps = {
   meetingId: number;
-  presignedUrl: string | undefined | null;
+  // presignedUrl: string | undefined | null;
   getRecordingFile: (chunks: Blob[]) => Blob;
   stopRecording: () => Promise<Blob>;
 };
 
-function BotBoard({ meetingId, presignedUrl, stopRecording }: BotBoardProps) {
+function BotBoard({ meetingId, stopRecording }: BotBoardProps) {
   const [selectedBot, setSelectedBot] = useState<string | null>(null);
   const [responses, setResponses] = useState<
-    { botType: string; text: string }[]
+    { botType: string; text: string; noteId?: number  }[]
   >([]);
+  // 모달 열림/닫힘 상태와 선택된 회의록 데이터를 위한 상태
+  const [isModalOpen, setModalOpen] = useState(false);
+  const [selectedLog, setSelectedLog] = useState<any>(null);
 
-  useEffect(() => {
-    if (!presignedUrl) {
-      console.warn('Missing presignedUrl.');
-      return;
-    }
-  });
+    // 실제 회의록 세부 정보를 가져오는 API 호출 (예시)
+    const openLogModal = async (noteId: number | null) => {
+      if (noteId === null) {
+        alert('noteId가 없습니다.');
+        return;
+      }
+      try {
+        const logDetails = await fetchLogDetailByLoadersApi(noteId);
+        setSelectedLog(logDetails);
+        setModalOpen(true);
+      } catch (err) {
+        console.error('Failed to fetch log details', err);
+        alert('Failed to fetch log details');
+      }
+    };
 
-  const FileUpload = async (presignedUrl: string, file: File) => {
-    try {
-      console.log('Uploading file to S3...');
-      await uploadFileToMeetingPresignedUrl(presignedUrl, file);
-    } catch (error) {
-      console.error('Failed to upload file:', error);
-    }
-  };
+  // useEffect(() => {
+  //   if (!presignedUrl) {
+  //     console.warn('Missing presignedUrl.');
+  //     return;
+  //   }
+  // });
+
+  // s3 업로드
+  // const FileUpload = async (presignedUrl: string, file: File) => {
+  //   try {
+  //     console.log('Uploading file to S3...');
+  //     await uploadFileToMeetingPresignedUrl(presignedUrl, file);
+  //   } catch (error) {
+  //     console.error('Failed to upload file:', error);
+  //   }
+  // };
+
+    // 백엔드에 업로드
+  // const FileUpload = async (file: File, meetingId: number) => {
+  //   try {
+  //     console.log('Uploading file to backend...');
+  //     await uploadFileToBotApi(file, meetingId);
+  //   } catch (error) {
+  //     console.error('Failed to upload file:', error);
+  //   }
+  // };
 
   const handleSelectBot = async (botType: string) => {
-    if (!presignedUrl) {
-      console.error('Presigned URL is not available');
+    if (!meetingId) {
+      console.error('Meeting ID is not available');
       return;
     }
 
@@ -122,21 +164,57 @@ function BotBoard({ meetingId, presignedUrl, stopRecording }: BotBoardProps) {
       });
 
       console.log('Uploading file size:', file.size);
-      await FileUpload(getBaseUrl(presignedUrl), file);
+      // await FileUpload(file, meetingId);
+      // await FileUpload(getBaseUrl(presignedUrl), file);
 
+      // 공통 봇 핸들러
+      const handleGenericBotResponse = (botType: string, responseText: any) => {
+        const newResponse = {
+          botType,
+          text: responseText.llm_response ?? '(llm_response가 없습니다)',
+        };
+        setResponses((prev) => [...prev, newResponse]);
+        setSelectedBot(botType);
+      };
+
+      // 로더 봇 핸들러
+      const handleLoaderBotResponse = (responseText: any) => {
+        const newResponse = {
+          botType: 'Paper Loader',
+          text: responseText.response ?? '(응답 없음)',
+          noteId: responseText.note_ids,
+        };
+        setResponses((prev) => [...prev, newResponse]);
+        setSelectedBot('Paper Loader');
+      };
+      
       let responseText;
-      if (botType === 'Positive Feedback') {
-        responseText = await getPositiveBotApi(meetingId);
-      } else if (botType === 'Attendance Checker') {
-        responseText = await getNegativeBotApi(meetingId);
-      } else if (botType === 'Summary') {
-        responseText = await getSummaryBotApi(meetingId);
-      } else if (botType === 'paper Loader') {
-        responseText = await getSummaryBotApi(meetingId);
+      if (botType === 'Positive Feedback') { // saju
+        responseText = await getPositiveBotApi(file, meetingId);
+        handleGenericBotResponse(botType, responseText);
+
+      } else if (botType === 'Attendance Checker') { // mbti
+        responseText = await getNegativeBotApi(file, meetingId);
+        handleGenericBotResponse(botType, responseText);
+
+      } else if (botType === 'Summary') { 
+        responseText = await getSummaryBotApi(file, meetingId);
+        handleGenericBotResponse(botType, responseText);
+
+      } else if (botType === 'Paper Loader') {
+        responseText = await getLoaderBotApi(file, meetingId);
+        handleLoaderBotResponse(responseText);
+        console.log('Loader Bot API response:', responseText);
       }
-      const newResponse = { botType, text: responseText.text };
-      setResponses((prev) => [...prev, newResponse]);
-      setSelectedBot(botType);
+      // const newResponse = { botType, text: responseText.llm_response ?? "(llm_response가 없습니다)", };
+      // setResponses((prev) => [...prev, newResponse]);
+      // setSelectedBot(botType);
+
+
+
+      
+
+
     } catch (error) {
       console.error('Error handling bot selection:', error);
     }
@@ -148,6 +226,8 @@ function BotBoard({ meetingId, presignedUrl, stopRecording }: BotBoardProps) {
   // setResponses((prev) => [...prev, newResponse]);
   // setSelectedBot(botType);
   // };
+
+
 
   const botColorsAndImages = bots.reduce(
     (acc, bot) => {
@@ -174,8 +254,11 @@ function BotBoard({ meetingId, presignedUrl, stopRecording }: BotBoardProps) {
           ))}
         </BotContainer>
         <Divider color={theme.colors.lineGray} />
-        <BotResponses responses={responses} bots={botColorsAndImages} />
+        <BotResponses responses={responses} bots={botColorsAndImages} openLogModal={openLogModal} />
       </BoardTitleContainer>
+      {isModalOpen && selectedLog && (
+        <LogModal log={selectedLog} onClose={() => setModalOpen(false)} />
+      )}
     </BoardContainer>
   );
 }

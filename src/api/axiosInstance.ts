@@ -1,5 +1,6 @@
 import axios from 'axios';
 
+//meetingApi
 const axiosInstance = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL,
   timeout: 200000,
@@ -7,6 +8,7 @@ const axiosInstance = axios.create({
     'Content-Type': 'application/json',
   },
 });
+
 
 function getFullUrl(config: any) {
   return `${config.baseURL || ''}${config.url}`;
@@ -52,5 +54,7 @@ axiosInstance.interceptors.response.use(
     return Promise.reject(error);
   },
 );
+
+
 
 export default axiosInstance;
