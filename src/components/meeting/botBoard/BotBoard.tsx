@@ -9,6 +9,7 @@ import {
   getPositiveBotApi,
   getSummaryBotApi,
   getLoaderBotApi,
+  getMoyaBotApi,
   // uploadFileToMeetingPresignedUrl, // 필요없어짐
   // uploadFileToBotApi
 } from '../../../api/meetingApi';
@@ -38,12 +39,13 @@ const BoardContainer = styled.div`
 const BoardTitleContainer = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 10px; /* 아이템 간 간격 */
+  gap: 2px; /* 아이템 간 간격 */
 `;
 
 const BotContainer = styled.div`
   display: flex;
-  justify-content: space-between; /* 가로로 균등 분배 */
+  flex-wrap: wrap; /* ✅ 줄바꿈 허용 */
+  justify-content: center; /* 가로로 균등 분배 */
   align-items: center; /* 세로 중앙 정렬 */
   gap: 12px; /* 각 봇 간격 */
   margin-bottom: 0;
@@ -51,26 +53,32 @@ const BotContainer = styled.div`
 
 const bots = [
   {
-    name: 'Summarize',
-    imageUrl: '/assets/images/positive_colored.png',
-    botType: 'Summary',
-    color: '#B585F6', // 청록색
-  },
-  {
-    name: 'SAJU',
-    imageUrl: '/assets/images/attendacne_checker_colored.png',
+    name: '팔자핑',
+    imageUrl: '/assets/images/paljaping2.webp',
     botType: 'Positive Feedback',
-    color: '#90D4AB', // 보라색
+    color: '#90D4AB', 
   },
   {
-    name: 'MBTI',
-    imageUrl: '/assets/images/summary_colored.png',
+    name: '타입핑',
+    imageUrl: '/assets/images/typeping.webp',
     botType: 'Attendance Checker',
-    color: '#F096A7', // 핑크색
+    color: '#AEE4FF	', // 하늘색
   },
   {
-    name: 'Loader',
-    imageUrl: '/assets/images/negative_colored.png',
+    name: '모야핑',
+    imageUrl: '/assets/images/moyaping.webp',
+    botType: 'Communitacion',
+    color: '#F28B82			', // 핑크색
+  },
+  {
+    name: '코어핑',
+    imageUrl: '/assets/images/coreping.webp',
+    botType: 'Summary',
+    color: '#FDDCE2	', // 핑크색
+  },
+  {
+    name: '유노핑',
+    imageUrl: '/assets/images/youKnowping.webp',
     botType: 'Paper Loader',
     color: '#FFFF91', // 노란색
   },
@@ -201,11 +209,16 @@ function BotBoard({ meetingId, stopRecording }: BotBoardProps) {
         responseText = await getSummaryBotApi(file, meetingId);
         handleGenericBotResponse(botType, responseText);
 
+      } else if (botType === 'Communitacion') { 
+        responseText = await getMoyaBotApi(file, meetingId);
+        handleGenericBotResponse(botType, responseText);
+
       } else if (botType === 'Paper Loader') {
         responseText = await getLoaderBotApi(file, meetingId);
         handleLoaderBotResponse(responseText);
         console.log('Loader Bot API response:', responseText);
       }
+
       // const newResponse = { botType, text: responseText.llm_response ?? "(llm_response가 없습니다)", };
       // setResponses((prev) => [...prev, newResponse]);
       // setSelectedBot(botType);

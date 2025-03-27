@@ -128,7 +128,7 @@ export const getSummaryBotApi = async (file: File, meetingId: number) => {
 export const getPositiveBotApi = async (file: File, meetingId: number) => {
   // AI 서버 URL을 환경변수에서 불러옵니다.
   const aiUrl = import.meta.env.VITE_AI_URL; // 예: http://163.180.117.216:8000
-  const positiveUrl = `${aiUrl}/api/bot/saju`;
+  const positiveUrl = `${aiUrl}/api/saju`;
 
   const formData = new FormData();
   formData.append("file", file);
@@ -158,7 +158,7 @@ export const getPositiveBotApi = async (file: File, meetingId: number) => {
 export const getNegativeBotApi = async (file: File, meetingId: number) => {
   // AI 서버 URL을 환경변수에서 불러옵니다.
   const aiUrl = import.meta.env.VITE_AI_URL; // 예: http://163.180.117.216:8000
-  const negativeUrl = `${aiUrl}/api/bot/mbti`;
+  const negativeUrl = `${aiUrl}/api/mbti`;
 
   const formData = new FormData();
   formData.append("file", file);
@@ -217,39 +217,33 @@ export const getLoaderBotApi = async (file: File, meetingId: number) => {
   }
 };
 
+// moya
+export const getMoyaBotApi = async (file: File, meetingId: number) => {
+  // AI 서버 URL을 환경변수에서 불러옵니다.
+  const aiUrl = import.meta.env.VITE_AI_URL; // 예: http://163.180.117.216:8000
+  const moyaUrl = `${aiUrl}/api/moya`;
 
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("meeting_id", meetingId.toString());
 
+  try {
+    console.log(`📤 Sending file & meeting ID to bot moya API at ${moyaUrl}...`);
+    const responseMoya = await axiosAIInstance.post(moyaUrl, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
 
+    if (responseMoya.data?.transcription) {
+      console.log("✅ Moya API request successful", responseMoya.data);
+    } else {
+      console.error("Moya API did not succeed", responseMoya.data);
+    }    
+    return responseMoya.data;
+  } catch (error) {
+    console.error("❌ Error in getMoyaBotApi:", error);
+    throw error;
+  }
+};
 
-
-// export const getPositiveBotApi = async (meetingId: number) => {
-//   const response = await axiosInstance.get('/api/v1/bot/positive', {
-//     params: { meetingId },
-//   });
-//   if (response.data?.success && response.status === 200) {
-//     return response.data.data;
-//   }
-//   throw new Error('Failed to fetch team details');
-// };
-
-// export const getNegativeBotApi = async (meetingId: number) => {
-//   const response = await axiosInstance.get('/api/v1/bot/negative', {
-//     params: { meetingId },
-//   });
-//   if (response.data?.success && response.status === 200) {
-//     return response.data.data;
-//   }
-//   throw new Error('Failed to fetch team details');
-// };
-
-// export const getLoaderBotApi = async (meetingId: number) => {
-//   const response = await axiosInstance.get('/api/v1/bot/loader', {
-//     params: { meetingId },
-//   });
-//   console.log('Loader raw response', response); // 전체 구조
-// console.log('Loader data:', response.data);  // data 구조
-//   if (response.data?.success && response.status === 200) {
-//     return response.data.data;
-//   }
-//   throw new Error('Failed to fetch team details');
-// };

@@ -29,7 +29,7 @@ const BotImage = styled.img`
 
 //
 const BotCircle = styled.div<{ isSelected: boolean }>`
-  width: 82px;
+  width: 110px;
   height: 82px;
   border: 1.8px solid ${({ color }) => color};
   border-radius: 12px;
