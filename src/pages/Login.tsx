@@ -3,7 +3,7 @@ import { useState } from 'react';
 import styled from '@emotion/styled';
 import { Spacer } from '../components/common/Spacer';
 import { useNavigate } from 'react-router';
-import logo from '/assets/images/dummy logo.png';
+import logo from '/assets/images/aidosa_logo_rm2.png';
 import backgroundImg from '/assets/images/login bg.png';
 import { useSetRecoilState } from 'recoil';
 import { userAtom } from '../recoil/atoms/userAtom';
@@ -234,7 +234,7 @@ const Login = () => {
       <Container>
         <Header>
           <Icon src={logo} alt="A-Meet logo" />
-          <ServiceName>A-Meet</ServiceName>
+          <ServiceName>AI-DOSA</ServiceName>
         </Header>
 
         <Input

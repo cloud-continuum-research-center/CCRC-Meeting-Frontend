@@ -1,7 +1,7 @@
 /** @jsxImportSource @emotion/react */
 import styled from '@emotion/styled';
 import { useNavigate } from 'react-router-dom';
-import logoImg from '/assets/images/dummy logo.png';
+import logoImg from '/assets/images/aidosa_logo.png';
 const LogoContainer = styled.div`
   font-size: ${(props) => props.theme.typography.fontSize.large};
   font-weight: ${(props) => props.theme.typography.fontWeight.semibold};
@@ -39,7 +39,7 @@ function Logo() {
       <LogoIcon>
         <LogoImage src={logoImg} alt="logo" />
       </LogoIcon>
-      A-meet
+      AI-dosa
     </LogoContainer>
   );
 }

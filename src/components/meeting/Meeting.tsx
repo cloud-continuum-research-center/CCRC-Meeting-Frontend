@@ -330,13 +330,23 @@ const Meeting = ({ meeting, teamName, teamId }: MeetingProps) => {
         const finalBlob = new Blob(recordedChunksRef.current, {
           type: 'audio/webm',
         });
+        recordedChunksRef.current = []; // 🔥 다음 녹음 위해 초기화
         console.log('Final recording blob size:', finalBlob.size);
         resolve(finalBlob);
 
         // ✅ 🔥 기존 MediaRecorder를 다시 시작하는 방식으로 변경
       if (localStream) {
-        mediaRecorder.start(); 
-        console.log('⏺ Resumed MediaRecorder after stopping.');
+        const newRecorder = new MediaRecorder(localStream, { mimeType: 'audio/webm' });
+
+        newRecorder.ondataavailable = (event) => {
+          if (event.data.size > 0) {
+            recordedChunksRef.current.push(event.data);
+          }
+        };
+
+        newRecorder.start();
+        setMediaRecorder(newRecorder);
+        console.log('🔁 녹음 재시작 완료');
       } else {
         console.error("❌ No available stream to restart MediaRecorder.");
       }

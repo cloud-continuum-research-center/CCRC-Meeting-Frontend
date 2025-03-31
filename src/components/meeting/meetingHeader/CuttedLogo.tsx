@@ -1,7 +1,7 @@
 /** @jsxImportSource @emotion/react */
 import styled from '@emotion/styled';
 import { useNavigate } from 'react-router-dom';
-import logo from '/logo.png';
+import logo from '/assets/images/aidosa_logo.png';
 
 const BigContainer = styled.div`
   width: clamp(220px, 18vw, 260px);
@@ -55,7 +55,7 @@ function CuttedLogo() {
       <LogoIcon>
         <LogoImage src={logo} alt="logo" />
       </LogoIcon>
-      A-meet
+      AI-dosa
     </LogoContainer>
     </BigContainer>
   );

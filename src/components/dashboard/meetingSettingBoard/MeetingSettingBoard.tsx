@@ -58,10 +58,11 @@ const MeetingSettingBoard = ({
   const [loading, setLoading] = useState(false);
   const [meetingTitle, setMeetingTitle] = useState('');
   const [botStates, setBotStates] = useState({
-    'Smart Summarize': true,
     'Positive Feedback': true,
     'Attendance Checker': true,
-    'Negative Feedback': false,
+    'Communication': true,
+    'Summary': true,
+    'Paper Loader': true,
   });
 
   if (!user || !user.id) {

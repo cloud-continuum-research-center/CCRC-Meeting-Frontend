@@ -13,9 +13,9 @@ import {
   // uploadFileToMeetingPresignedUrl, // 필요없어짐
   // uploadFileToBotApi
 } from '../../../api/meetingApi';
-import { getBaseUrl } from '../../../utils/meetingUtils'; // 필요없어짐
-import { Log } from '../../../models/Log';
-import { useFetchLogs } from '../../../hooks/useFetchLogs';
+// import { getBaseUrl } from '../../../utils/meetingUtils'; // 필요없어짐
+// import { Log } from '../../../models/Log';
+// import { useFetchLogs } from '../../../hooks/useFetchLogs';
 import { fetchLogDetailByLoadersApi } from '../../../api/logApi';
 import LogModal from '../../common/logBoard/LogModal';
 
@@ -167,7 +167,10 @@ function BotBoard({ meetingId, stopRecording }: BotBoardProps) {
         return;
       }
 
-      const file = new File([recording], 'meeting_recording.webm', {
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-'); // 콜론/점 제거
+      const fileName = `meeting_recording_${timestamp}.webm`;
+
+      const file = new File([recording], fileName, {
         type: 'audio/webm',
       });
 

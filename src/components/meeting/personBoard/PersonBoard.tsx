@@ -126,16 +126,6 @@ function PersonBoard({ participants = [], localStream }: PersonBoardProps) {
       <RecordingIndicator>
         <div className="dot"></div>
         <div className="text">recording..</div>
-        {localStream && (
-          <AudioUI
-            autoPlay
-            controls
-            muted
-            ref={(audio) => {
-              if (audio) audio.srcObject = localStream;
-            }}
-          />
-        )}
       </RecordingIndicator>
       {participants.length === 0 ? (
         <div>No user in meeting</div>

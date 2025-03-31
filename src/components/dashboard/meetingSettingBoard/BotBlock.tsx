@@ -7,6 +7,7 @@ type BotBlockProps = {
   imageUrl: string;
   botType: string;
   description: string;
+  displayName: string; // 👈 추가
   onToggle?: () => void;
 };
 
@@ -59,13 +60,14 @@ const BotBlock: React.FC<BotBlockProps> = ({
   imageUrl,
   botType,
   description,
+  displayName,
   onToggle,
 }) => {
   return (
     <BotContainer isActive={isActive} onClick={isActive ? onToggle : undefined}>
       <BotImage src={imageUrl} isActive={isActive} />
       <BotInfo>
-        <BotType isActive={isActive}>{botType}</BotType>
+        <BotType isActive={isActive}>{displayName}</BotType>
         <BotDescription isActive={isActive}>{description}</BotDescription>
       </BotInfo>
       {isActive ? (

@@ -41,7 +41,10 @@ function EtcBoard({
         return;
       }
 
-      const file = new File([recording], 'meeting_recording.webm', {
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-'); // 콜론/점 제거
+      const fileName = `meeting_recording_${timestamp}.webm`;
+
+      const file = new File([recording], fileName, {
         type: 'audio/webm',
       });
 
