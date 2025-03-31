@@ -15,6 +15,8 @@ import { FiUsers } from 'react-icons/fi';
 import Divider from '../Divider';
 import { formatDateTime, formatISODuration } from '../../../utils/dateUtils';
 // import { BiGroup } from 'react-icons/bi';
+import ReactMarkdown from 'react-markdown';
+
 
 const Header = styled.div`
   display: flex;
@@ -200,7 +202,11 @@ function LogModal({ log, onClose }: LogModalProps) {
           </EditButton>
         </ContentHeader>
         <ContentBody>
-          {toggleView === 'AI Summary' ? log.summary : log.script}
+        {toggleView === 'AI Summary' ? (
+    <ReactMarkdown>{log.summary}</ReactMarkdown>
+  ) : (
+    log.script
+  )}
         </ContentBody>
       </ModalContainer>
     </ModalOverlay>
