@@ -88,7 +88,11 @@ function BotResponses({ responses, bots, openLogModal }: BotResponsesProps) {
           <ResponseBubble key={index} color={bot.color}>
             <BotIcon src={bot.imageUrl} alt={response.botType} />
             <div style={{ flex: 1 }}>
-              <div>{response.text}</div>
+              <div>{response.text
+                .split(/(?<=[.?!])\s+/) // 마침표, 느낌표, 물음표 뒤에 오는 공백 기준으로 나눔
+                .map((line, idx) => (
+                  <p key={idx} style={{ marginBottom: '8px' }}>{line}</p>
+                ))}</div>
 
               {/* LoaderBot 전용 버튼 */}
               {response.botType === 'Paper Loader' && (response as any).noteId && (
