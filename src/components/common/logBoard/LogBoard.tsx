@@ -22,9 +22,27 @@ const LogsContainer = styled.div`
 
 const PaginationContainer = styled.div`
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: center;
   gap: 8px;
+
+  max-width: 920px;
+  width: 100%;
+  margin: 0 auto 16px;
+  
+  overflow-x: auto;                // ✅ 가로 스크롤 허용
+  overflow-y: hidden;
+  white-space: nowrap;            // ✅ 줄바꿈 방지
+
+  &::-webkit-scrollbar {
+    height: 6px; // 가로 스크롤바 높이
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 4px;
+  }
+
 `;
 
 const PaginationButton = styled.button`
@@ -46,6 +64,7 @@ const PaginationButton = styled.button`
 `;
 
 const PageNumber = styled.button<{ active?: boolean }>`
+  flex-shrink: 0; /* ✅ 추가: 줄어들지 않게 만듦 */
   padding: 0px 12px;
   border: none;
   border-radius: ${(props) => props.theme.borderRadius.small};

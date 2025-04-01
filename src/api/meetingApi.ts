@@ -31,6 +31,34 @@ export const fetchMeetingDetailApi = async (meetingId: number) => {
   throw new Error('Failed to fetch team details');
 };
 
+export const endTestApi = async (file: File, meetingId: number) => {
+  const aiUrl = import.meta.env.VITE_AI_URL; // 예: http://163.180.117.216:8000
+  const endmeetingUrl = `${aiUrl}/api/v1/endtest`;
+
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("meeting_id", meetingId.toString());
+  
+  try {
+    console.log(`📤 Sending file & meeting ID exit API at ${endmeetingUrl}...`);
+    const responseEndmeeting = await axiosAIInstance.post(endmeetingUrl, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+
+    if (responseEndmeeting.data?.transcription) {
+      console.log("✅ exit API request successful", responseEndmeeting.data);
+    } else {
+      console.error("exit API did not succeed", responseEndmeeting.data);
+    }    
+    return responseEndmeeting.data;
+  } catch (error) {
+    console.error("❌ Error in exit Meeting:", error);
+    throw error;
+}
+};
+
 export const endMeetingApi = async (file: File, meetingId: number) => {
   const aiUrl = import.meta.env.VITE_AI_URL; // 예: http://163.180.117.216:8000
   const endmeetingUrl = `${aiUrl}/api/v1/endmeeting`;
