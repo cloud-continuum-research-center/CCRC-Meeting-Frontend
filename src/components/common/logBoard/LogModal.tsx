@@ -17,6 +17,39 @@ import { formatDateTime, formatISODuration } from '../../../utils/dateUtils';
 // import { BiGroup } from 'react-icons/bi';
 import ReactMarkdown from 'react-markdown';
 
+const MarkdownWrapper = styled.div`
+  h1 {
+    font-size: 1.8rem;
+    font-weight: bold;
+    margin-bottom: 12px;
+  }
+  h2 {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 10px;
+  }
+  h3 {
+    font-size: 1.3rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+  h4 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  p {
+    font-size: 1rem;
+    line-height: 1.5;
+    margin-bottom: 6px;
+  }
+  ul, ol {
+    margin-left: 20px;
+  }
+  li {
+    margin-bottom: 4px;
+  }
+`;
 
 const Header = styled.div`
   display: flex;
@@ -203,7 +236,9 @@ function LogModal({ log, onClose }: LogModalProps) {
         </ContentHeader>
         <ContentBody>
         {toggleView === 'AI Summary' ? (
+    <MarkdownWrapper>
     <ReactMarkdown>{log.summary}</ReactMarkdown>
+  </MarkdownWrapper>
   ) : (
     log.script
   )}
