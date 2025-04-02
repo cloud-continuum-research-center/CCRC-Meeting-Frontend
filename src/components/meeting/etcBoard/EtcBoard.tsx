@@ -33,6 +33,10 @@ function EtcBoard({
 
       if (recording.size === 0) {
         console.error('The recording file is empty. Aborting upload.');
+
+        // 파일이 없어도 퇴장 자체는 할 수 있게 수정
+        leaveMeeting();
+        navigate(-1);
         return;
       }
 
@@ -47,14 +51,23 @@ function EtcBoard({
       // await FileUpload(file, meetingId);
       // await FileUpload(getBaseUrl(presignedUrl), file);
       
-      const meetingData = await endTestApi(file, meetingId);
-      console.log('Meeting exited successfully:', meetingData);
-
+      // 일단 퇴장 먼저
       leaveMeeting();
-      
       navigate(-1);
+
+      // ✅ 비동기로 업로드 처리 (백그라운드)
+      endTestApi(file, meetingId)
+      .then((data) => {
+        console.log('Meeting exited successfully:', data);
+      })
+      .catch((error) => {
+        console.error('Failed to upload meeting data:', error);
+      });
     } catch (error) {
       console.error('Failed to exit the meeting:', error);
+      // 퇴장은 예외가 발생해도 시도
+      leaveMeeting();
+      navigate(-1);
     }
   };
 

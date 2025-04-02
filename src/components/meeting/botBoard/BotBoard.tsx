@@ -152,89 +152,72 @@ function BotBoard({ meetingId, stopRecording }: BotBoardProps) {
   //   }
   // };
 
-  const handleSelectBot = async (botType: string) => {
+  const handleSelectBot = (botType: string) => {
     if (!meetingId) {
       console.error('Meeting ID is not available');
       return;
     }
-
-    try {
-      const recording = await stopRecording();
-      console.log('Recording received from stopRecording:', recording);
-
-      if (recording.size === 0) {
-        console.error('The recording file is empty. Aborting upload.');
-        return;
-      }
-
-      const timestamp = new Date().toISOString().replace(/[:.]/g, '-'); // 콜론/점 제거
-      const fileName = `meeting_recording_${timestamp}.webm`;
-
-      const file = new File([recording], fileName, {
-        type: 'audio/webm',
-      });
-
-      console.log('Uploading file size:', file.size);
-      // await FileUpload(file, meetingId);
-      // await FileUpload(getBaseUrl(presignedUrl), file);
-
-      // 공통 봇 핸들러
-      const handleGenericBotResponse = (botType: string, responseText: any) => {
-        const newResponse = {
-          botType,
-          text: responseText.llm_response ?? '(llm_response가 없습니다)',
+  
+    // 💡 바로 UI 업데이트
+    setSelectedBot(botType);
+  
+    // 💡 비동기 처리는 백그라운드에서 실행
+    (async () => {
+      try {
+        const recording = await stopRecording();
+        if (recording.size === 0) {
+          console.error('The recording file is empty. Aborting upload.');
+          return;
+        }
+  
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+        const fileName = `meeting_recording_${timestamp}.webm`;
+        const file = new File([recording], fileName, {
+          type: 'audio/webm',
+        });
+  
+        // 응답 핸들러들
+        const handleGenericBotResponse = (botType: string, responseText: any) => {
+          const newResponse = {
+            botType,
+            text: responseText.llm_response ?? '(llm_response가 없습니다)',
+          };
+          setResponses((prev) => [...prev, newResponse]);
         };
-        setResponses((prev) => [...prev, newResponse]);
-        setSelectedBot(botType);
-      };
-
-      // 로더 봇 핸들러
-      const handleLoaderBotResponse = (responseText: any) => {
-        const newResponse = {
-          botType: 'Paper Loader',
-          text: responseText.response ?? '(응답 없음)',
-          noteId: responseText.note_ids,
+  
+        const handleLoaderBotResponse = (responseText: any) => {
+          const newResponse = {
+            botType: 'Paper Loader',
+            text: responseText.response ?? '(응답 없음)',
+            noteId: responseText.note_ids,
+          };
+          setResponses((prev) => [...prev, newResponse]);
         };
-        setResponses((prev) => [...prev, newResponse]);
-        setSelectedBot('Paper Loader');
-      };
-      
-      let responseText;
-      if (botType === 'Positive Feedback') { // saju
-        responseText = await getPositiveBotApi(file, meetingId);
-        handleGenericBotResponse(botType, responseText);
-
-      } else if (botType === 'Attendance Checker') { // mbti
-        responseText = await getNegativeBotApi(file, meetingId);
-        handleGenericBotResponse(botType, responseText);
-
-      } else if (botType === 'Summary') { 
-        responseText = await getSummaryBotApi(file, meetingId);
-        handleGenericBotResponse(botType, responseText);
-
-      } else if (botType === 'Communitacion') { 
-        responseText = await getMoyaBotApi(file, meetingId);
-        handleGenericBotResponse(botType, responseText);
-
-      } else if (botType === 'Paper Loader') {
-        responseText = await getLoaderBotApi(file, meetingId);
-        handleLoaderBotResponse(responseText);
-        console.log('Loader Bot API response:', responseText);
+  
+        // 실제 봇 호출
+        let responseText;
+        if (botType === 'Positive Feedback') {
+          responseText = await getPositiveBotApi(file, meetingId);
+          handleGenericBotResponse(botType, responseText);
+        } else if (botType === 'Attendance Checker') {
+          responseText = await getNegativeBotApi(file, meetingId);
+          handleGenericBotResponse(botType, responseText);
+        } else if (botType === 'Summary') {
+          responseText = await getSummaryBotApi(file, meetingId);
+          handleGenericBotResponse(botType, responseText);
+        } else if (botType === 'Communitacion') {
+          responseText = await getMoyaBotApi(file, meetingId);
+          handleGenericBotResponse(botType, responseText);
+        } else if (botType === 'Paper Loader') {
+          responseText = await getLoaderBotApi(file, meetingId);
+          handleLoaderBotResponse(responseText);
+        }
+      } catch (error) {
+        console.error('Error handling bot selection:', error);
       }
-
-      // const newResponse = { botType, text: responseText.llm_response ?? "(llm_response가 없습니다)", };
-      // setResponses((prev) => [...prev, newResponse]);
-      // setSelectedBot(botType);
-
-
-
-      
-
-
-    } catch (error) {
-      console.error('Error handling bot selection:', error);
-    }
+    })();
   };
+  
 
   // await FileUpload(getBaseUrl(presignedUrl, 'DUMMY_FILE'));
   // const response = await getSummaryBotApi(meetingId); // this is the actual 'new response'
